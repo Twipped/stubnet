@@ -1,0 +1,26 @@
+{
+  "name": "stubnet",
+  "version": "1.0.0",
+  "description": "Library for stubbing client/server communication in integration tests.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "testing",
+    "unit",
+    "integration",
+    "integration testing",
+    "unit testing",
+    "mock",
+    "stub",
+    "socket",
+    "tcp",
+    "net"
+  ],
+  "author": "Jarvis Badgley <chiper@chipersoft.com> (http://chipersoft.com/)",
+  "license": "MIT",
+  "dependencies": {
+    "debug": "~2.2.0"
+  }
+}
