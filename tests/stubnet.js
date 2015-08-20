@@ -6,7 +6,7 @@ var net = require('net');
 exports['basic connection'] = function (test) {
 	test.expect(6);
 
-	var stub = stubnet()
+	var stub = stubnet({assert:test})
 		.listenTo({port: 50000, ready: onReady})
 		.expectConnection('CONNECTION OPENED')
 		.expectData('hello', 'DATA')
