@@ -4,7 +4,7 @@
   "description": "Library for stubbing client/server communication in integration tests.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "DEBUG=stubnet nodeunit tests --reporter=tap"
   },
   "keywords": [
     "testing",
@@ -22,5 +22,8 @@
   "license": "MIT",
   "dependencies": {
     "debug": "~2.2.0"
+  },
+  "devDependencies": {
+    "nodeunit": "~0.9.1"
   }
 }
