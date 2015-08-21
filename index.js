@@ -3,6 +3,7 @@ var tls = require('tls');
 var nodeAssert = require('assert');
 var extend = require('util')._extend;
 var debug = require('debug')('stubnet');
+var bufferCompare = require('buf-compare');
 
 module.exports = function (config) {
 
@@ -32,11 +33,23 @@ module.exports = function (config) {
 		return next(0);
 	}
 
+	function fail() {
+		mock.stop();
+		var lastStep = steps.length && steps[steps.length - 1]
+		if (lastStep) {
+			stepChecks[lastStep.action](lastStep);
+		}
+	}
+
 	function process () {
 		var currentStep = steps[0];
 		if (!currentStep) {
 			debug('process', null);
-			assert.ok(false, 'Stubnet events occurred after test completion.');
+			try {
+				assert.ok(false, 'Stubnet events occurred after test completion.');
+			} finally {
+				fail();
+			}
 			return;
 		}
 		debug('process', currentStep.action, currentStep.message);
@@ -51,24 +64,40 @@ module.exports = function (config) {
 		}
 
 		if (steps[0].action === 'receive' && steps[0].socketIndex === index && buffers[index]) {
+			var segment;
 			var expecting = steps[0].data;
-
+			
 			if (buffers[index].length < expecting.length) {
 				// perform a shallow compare so we can reject early.
-				var segment = expecting.slice(0, buffers[index].length);
-				if (!buffers[index].equals(segment)) {
-					debug('asserting that buffer does not match');
-					assert.equal(buffers[index].toString(), segment.toString(), steps[0].message);
+				segment = expecting.slice(0, buffers[index].length);
+				if (bufferCompare(buffers[index],segment)) {
+					debug('asserting', 'that the partial buffer does not match');
+					try {
+						assert.equal(buffers[index].toString(), segment.toString(), steps[0].message || 'Expected data did not match');
+					} finally {
+						fail();
+					}
 				}
 
 				return;
 			}
 
-			debug('asserting if buffer contents match');
-			assert.equal(expecting.toString(), buffers[index].slice(0, expecting.length).toString(), steps[0].message || 'Expecting received data');
-			buffers[index] = buffers[index].slice(expecting.length);
-			steps.shift();
-			return process();
+			segment = buffers[index].slice(0, expecting.length)
+			if (bufferCompare(expecting, segment)) {
+				debug('asserting', 'that buffer contents do not match');
+				try {
+					assert.equal(expecting.toString(), segment.toString(), steps[0].message || 'Expected data did not match');
+				} finally {
+					fail();
+				}
+			} else {
+				debug('asserting', 'that buffer contents do match');
+				assert.ok(true, steps[0].message || 'Expecting received data');
+
+				buffers[index] = buffers[index].slice(expecting.length);
+				steps.shift();
+				return process();
+			}
 		}
 	}
 
@@ -89,13 +118,13 @@ module.exports = function (config) {
 			server.on('connection', function (socket) {
 				debug('connection', sockets.length);
 				if (steps[0].action === 'connection') {
-					debug('asserting connection opened ok');
+					debug('asserting', 'connection opened ok');
 					assert.ok(true, steps[0].message || "Connection received");
 					clearTimeout(steps[0].timer)
 					steps.shift();
 				} else {
-					debug('asserting that an unexpected connection occured');
-					assert.ok(false, "Unexpected connection received" + (steps[0].message ? '(' + steps[0].message + ')' : ''));
+					debug('asserting', 'that an unexpected connection occured');
+					assert.ok(false, "Unexpected connection received" + (steps[0].message ? ' (' + steps[0].message + ')' : ''));
 				}
 
 				var index = sockets.length;
@@ -104,7 +133,7 @@ module.exports = function (config) {
 				socket.on('data', function (data) {
 					debug('data', index, data);
 					if (!buffers[index]) {
-						buffers[index] = data;
+						buffers[index] = new Buffer(data);
 					} else {
 						buffers[index] = Buffer.concat(buffers[index], data);
 					}
@@ -115,12 +144,12 @@ module.exports = function (config) {
 				socket.on('end', function () {
 					debug('end', index);
 					if (steps[0].action === 'end' && steps[0].socketIndex === index) {
-						debug('asserting connection ended ok')
+						debug('asserting', 'connection ended ok')
 						assert.ok(true, steps[0].message || 'Socket ended');
 						clearTimeout(steps[0].timer);
 						steps.shift();
 					} else {
-						debug('asserting that the socket closed too early')
+						debug('asserting', 'that the socket closed too early');
 						assert.ok(false, "Socket " + index + " closed early" + (steps[0].message ? ' (' + steps[0].message + ')' : ''));
 					}
 
@@ -133,7 +162,7 @@ module.exports = function (config) {
 				socket.on('close', function () {
 					debug('close', index);
 					if (steps[0] && [0].action === 'close' && steps[0].socketIndex === index) {
-						debug('asserting connection closed ok')
+						debug('asserting', 'connection closed ok')
 						assert.ok(true, steps[0].message || 'Socket closed');
 						clearTimeout(steps[0].timer);
 						steps.shift();
@@ -149,7 +178,7 @@ module.exports = function (config) {
 			});
 
 			server.on('listening', function () {
-				debug('asserting listening for connections');
+				debug('asserting', 'listening for connections');
 				assert.ok(true, currentStep.message || 'Listening for connections');
 				steps.shift();
 				if (typeof currentStep.callback === 'function') {
@@ -165,8 +194,12 @@ module.exports = function (config) {
 		'connection': function (currentStep) {
 			debug('stepCheck', 'connection');
 			currentStep.timer = setTimeout(function () {
-				debug('asserting a timeout waiting for connection')
-				assert.ok(false, "Timed out waiting for a socket to connect" + (currentStep.message ? ' (' + currentStep.message + ')' : ''));
+				debug('asserting', 'a timeout waiting for connection')
+				try {
+					assert.ok(false, "Timed out waiting for a socket to connect" + (currentStep.message ? ' (' + currentStep.message + ')' : ''));
+				} finally {
+					fail();
+				}
 			}, currentStep.timeout || 30000);
 		},
 
@@ -177,9 +210,15 @@ module.exports = function (config) {
 
 		'send': function (currentStep) {
 			debug('stepCheck', 'send');
+			if (!sockets[currentStep.socketIndex]) {
+				debug('sent step occurring out of order')
+				assert.ok(false, 'A sent step was configured to occur before a connection existed' + (currentStep.message ? ' (' + currentStep.message + ')' : ''));
+				return;
+			}
+
 			sockets[currentStep.socketIndex].write(currentStep.data, function () {
-				debug('asserting that data sent')
-				assert.ok(true, currentStep.message);
+				debug('asserting', 'that data sent')
+				assert.ok(true, currentStep.message || 'Sent data');
 				process();
 			});
 			steps.shift();
@@ -189,8 +228,12 @@ module.exports = function (config) {
 			debug('stepCheck', 'end');
 			//wait for end event
 			currentStep.timer = setTimeout(function () {
-				debug('asserting a timeout waiting for a socket to end');
-				assert.ok(false, "Timed out waiting for socket " + currentStep.socketIndex + " to end" + (currentStep.message ? ' (' + currentStep.message + ')' : ''));
+				debug('asserting', 'a timeout waiting for a socket to end');
+				try {
+					assert.ok(false, "Timed out waiting for socket " + currentStep.socketIndex + " to end" + (currentStep.message ? ' (' + currentStep.message + ')' : ''));
+				} finally {
+					fail();
+				}
 			}, currentStep.timeout || 30000);
 		},
 
@@ -198,17 +241,29 @@ module.exports = function (config) {
 			debug('stepCheck', 'close');
 			// wait for close event
 			currentStep.timer = setTimeout(function () {
-				debug('asserting a timeout waiting for a socket to close');
-				assert.ok(false, "Timed out waiting for socket " + currentStep.socketIndex + " to close" + (currentStep.message ? ' (' + currentStep.message + ')' : ''));
+				debug('asserting', 'a timeout waiting for a socket to close');
+				try {
+					assert.ok(false, "Timed out waiting for socket " + currentStep.socketIndex + " to close" + (currentStep.message ? ' (' + currentStep.message + ')' : ''));
+				} finally {
+					fail();
+				}
 			}, currentStep.timeout || 30000);
 		},
 
 		'buffer is empty': function (currentStep) {
 			debug('stepCheck', 'buffer is empty');
-			debug('asserting if a connection buffer is empty');
-			assert.equal(buffers[currentStep.socketIndex].toString(), '', currentStep.message || 'Expected buffer to be empty');
-			steps.shift();
-			return process();
+			debug('asserting', 'if a connection buffer is empty');
+			if (buffers[currentStep.socketIndex] && buffers[currentStep.socketIndex].length) {
+				try {
+					assert.equal(buffers[currentStep.socketIndex].toString(), '', currentStep.message || 'Expected buffer to be empty');
+				} finally {
+					fail();
+				}
+			} else {
+				assert.ok(true, currentStep.message || 'Buffer is empty');
+				steps.shift();
+				return process();
+			}
 		},
 
 		'done': function (currentStep) {

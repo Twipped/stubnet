@@ -4,7 +4,8 @@
   "description": "Library for stubbing client/server communication in integration tests.",
   "main": "index.js",
   "scripts": {
-    "test": "DEBUG=stubnet nodeunit tests --reporter=tap"
+    "test": "mocha tests --ui=exports",
+    "test-debug": "DEBUG=stubnet mocha tests --ui=exports"
   },
   "keywords": [
     "testing",
@@ -21,9 +22,11 @@
   "author": "Jarvis Badgley <chiper@chipersoft.com> (http://chipersoft.com/)",
   "license": "MIT",
   "dependencies": {
+    "buf-compare": "~1.0.0",
     "debug": "~2.2.0"
   },
   "devDependencies": {
-    "nodeunit": "~0.9.1"
+    "mocha": "~2.2.5",
+    "sinon": "~1.16.1"
   }
 }
