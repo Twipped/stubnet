@@ -5,7 +5,7 @@ var Promise = require('bluebird');
 var proxmis = require('proxmis');
 
 test('expected connection and valid data, with close', function (t) {
-	t.plan(9);
+	t.plan(10);
 
 	var stubnetDone = proxmis({noError: true});
 	var socketDone  = proxmis({noError: true});
@@ -14,6 +14,7 @@ test('expected connection and valid data, with close', function (t) {
 		.listenTo({port: 50000, pass: onReady, fail: t.fail, name: 'listenTo'})
 		.expectConnection(     {pass: t.pass,  fail: t.fail, name: 'expectConnection'})
 		.expectData('hello',   {pass: t.pass,  fail: t.fail, name: 'expectData'})
+		.expectNoData(         {pass: t.pass,  fail: t.fail, name: 'expectNoData'})
 		.thenClose(            {pass: t.pass,  fail: t.fail, name: 'thenClose'})
 		.start({                pass: t.pass,  fail: t.fail, done: stubnetDone,  name: 'server is finished'});
 
