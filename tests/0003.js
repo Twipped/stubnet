@@ -1,10 +1,8 @@
-
 var test    = require('tap').test;
 var sinon   = require('sinon');
 var stubnet = require('../index');
 var net     = require('net');
 var AssertionError = require('assert').AssertionError;
-
 
 function failureHook (t) {
 	return sinon.spy(function () {

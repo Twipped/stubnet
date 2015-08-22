@@ -1,4 +1,3 @@
-
 var test    = require('tap').test;
 var stubnet = require('../index');
 var net     = require('net');

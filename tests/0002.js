@@ -1,4 +1,3 @@
-
 var test    = require('tap').test;
 var sinon   = require('sinon');
 var stubnet = require('../index');
@@ -10,7 +9,6 @@ function failureHook (t) {
 		t.pass(this.name);
 	});
 }
-
 
 test('unexpected connection and wrong data', function (t) {
 	t.plan(7);
