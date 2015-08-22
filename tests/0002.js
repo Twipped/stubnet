@@ -17,7 +17,7 @@ test('unexpected connection and wrong data', function (t) {
 
 	var stub = failureHook(t);
 
-	var mockServer = stubnet()
+	stubnet()
 		.listenTo({port: 50000, pass: onReady, fail: stub, name: 'listenTo'})
 		.expectData('testing', {pass: t.fail,  fail: stub, name: 'expectData'})
 		.start({pass: t.pass,  done: onFinish,  name: 'server is finished'});
