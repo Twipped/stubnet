@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "tap tests",
-    "test-debug": "DEBUG=stubnet* tap tests"
+    "test-debug": "DEBUG=stubnet* tap tests",
+    "coverage": "tap tests --cov --coverage-report=lcov"
   },
   "keywords": [
     "testing",
