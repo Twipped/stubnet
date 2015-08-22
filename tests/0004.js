@@ -5,7 +5,7 @@ var Promise = require('bluebird');
 var proxmis = require('proxmis');
 
 test('expected connection and valid data, with close', function (t) {
-	t.plan(8);
+	t.plan(9);
 
 	var stubnetDone = proxmis({noError: true});
 	var socketDone  = proxmis({noError: true});
@@ -20,6 +20,8 @@ test('expected connection and valid data, with close', function (t) {
 	t.ok(mockServer.abort, 'abort function exists');
 
 	function onReady() {
+		t.pass.apply(this, arguments);
+
 		var socket = new net.Socket();
 		socket.connect(50000, 'localhost', function () {
 			t.pass('net.connect');

@@ -3,7 +3,7 @@ var stubnet = require('../index');
 var net     = require('net');
 
 test('expecting two data chunks, single packets', function (t) {
-	t.plan(9);
+	t.plan(10);
 
 	var mockServer = stubnet()
 		.listenTo({port: 50000, pass: onReady, fail: t.fail, name: 'listenTo'})
@@ -16,6 +16,8 @@ test('expecting two data chunks, single packets', function (t) {
 	t.ok(mockServer.abort, 'abort function exists');
 
 	function onReady() {
+		t.pass.apply(this, arguments);
+
 		var socket = new net.Socket();
 		socket.connect(50000, 'localhost', function () {
 			t.pass('net.connect');

@@ -11,7 +11,7 @@ function failureHook (t) {
 }
 
 test('unexpected connection and wrong data', function (t) {
-	t.plan(7);
+	t.plan(8);
 
 	var stub = failureHook(t);
 
@@ -21,6 +21,8 @@ test('unexpected connection and wrong data', function (t) {
 		.start({pass: t.pass,  done: onFinish,  name: 'server is finished'});
 
 	function onReady() {
+		t.pass.apply(this, arguments);
+
 		var socket = new net.Socket();
 		socket.connect(50000, 'localhost', function () {
 			t.pass('net.connect');

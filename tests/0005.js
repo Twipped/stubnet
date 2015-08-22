@@ -3,7 +3,7 @@ var stubnet = require('../index');
 var net     = require('net');
 
 test('sending non-text buffer data', function (t) {
-	t.plan(8);
+	t.plan(9);
 
 	var mockServer = stubnet()
 		.listenTo({port: 50000, pass: onReady, fail: t.fail, name: 'listenTo'})
@@ -15,6 +15,8 @@ test('sending non-text buffer data', function (t) {
 	t.ok(mockServer.abort, 'abort function exists');
 
 	function onReady() {
+		t.pass.apply(this, arguments);
+
 		var socket = new net.Socket();
 		socket.connect(50000, 'localhost', function () {
 			t.pass('net.connect');
