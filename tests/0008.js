@@ -1,7 +1,7 @@
 var test    = require('tap').test;
-var sinon   = require('sinon');
 var stubnet = require('../index');
 var net     = require('net');
+var sinon   = require('sinon');
 var AssertionError = require('assert').AssertionError;
 
 function failureHook (t) {
@@ -39,7 +39,7 @@ test('expecting two data chunks, second never fully arrives', function (t) {
 		});
 	}
 
-	function onFinish() {
+	function onFinish () {
 		t.equal(stub.callCount, 1, 'only one failure detected');
 
 		var failureValue = stub.getCall(0).args[0];

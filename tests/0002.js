@@ -1,9 +1,9 @@
 var test    = require('tap').test;
-var sinon   = require('sinon');
 var stubnet = require('../index');
 var net     = require('net');
-var AssertionError = require('assert').AssertionError;
 
+var sinon   = require('sinon');
+var AssertionError = require('assert').AssertionError;
 function failureHook (t) {
 	return sinon.spy(function () {
 		t.pass(this.name);
@@ -40,7 +40,7 @@ test('unexpected connection and wrong data', function (t) {
 
 		var failureValue = stub.getCall(0).args[0];
 		t.ok(failureValue instanceof AssertionError, 'received an AssertionError');
-		t.equal(failureValue.message, 'Unexpected connection received');
+		t.equal(failureValue.message, 'Unexpected connection received', 'assertion message matches');
 
 		t.end();
 	}

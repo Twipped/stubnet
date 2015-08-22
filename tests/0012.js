@@ -1,6 +1,5 @@
 var test    = require('tap').test;
 var stubnet = require('../index');
-var net     = require('net');
 
 var sinon   = require('sinon');
 var AssertionError = require('assert').AssertionError;
