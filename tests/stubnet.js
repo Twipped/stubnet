@@ -15,6 +15,7 @@ function failureHook (t) {
 }
 
 test('basic connection', function (t) {
+	t.plan(8);
 
 	var mockServer = stubnet()
 		.listenTo({port: 50000, pass: onReady, fail: t.fail, name: 'listenTo'})
@@ -42,6 +43,7 @@ test('basic connection', function (t) {
 
 
 test('unexpected connection and wrong data', function (t) {
+	t.plan(7);
 
 	var stub = failureHook(t);
 
