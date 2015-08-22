@@ -4,8 +4,8 @@
   "description": "Library for stubbing client/server communication in integration tests.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests --ui=exports",
-    "test-debug": "DEBUG=stubnet mocha tests --ui=exports"
+    "test": "tap tests",
+    "test-debug": "DEBUG=stubnet* tap tests"
   },
   "keywords": [
     "testing",
@@ -26,7 +26,7 @@
     "debug": "~2.2.0"
   },
   "devDependencies": {
-    "mocha": "~2.2.5",
-    "sinon": "~1.16.1"
+    "sinon": "~1.16.1",
+    "tap": "~1.3.2"
   }
 }
