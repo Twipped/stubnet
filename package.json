@@ -1,6 +1,6 @@
 {
   "name": "stubnet",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Library for stubbing client/server communication in integration tests.",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,7 @@
     "mock",
     "stub",
     "socket",
+    "server",
     "tcp",
     "net"
   ],
