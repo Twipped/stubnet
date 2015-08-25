@@ -1,6 +1,10 @@
 Stubnet
 ==================
 
+```
+npm install --save-dev stubnet
+```
+
 Stubnet is a testing library for creating fake TCP servers that can be connected to in automated tests, which will behave in a defined manner.  Server behavior is defined as a sequential set of steps of data received and sent.
 
 ###Example Test ([tap](https://www.npmjs.com/package/tap))
